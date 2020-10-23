@@ -9,8 +9,30 @@ namespace launchpad {
         mixer
     };
 
+    namespace config {
+        class ButtonBase {
+        public:
+            ButtonBase() {}
+            virtual ~ButtonBase() {}
+            virtual void execute() = 0;
+        };
+
+        class ButtonSimpleMacro : public ButtonBase {
+            int keycode;
+        public:
+            void execute();
+        };
+
+        class ButtonComplexMacro : public ButtonBase {
+        public:
+            void execute();
+        };
+    }
+
     class Launchpad {
-        bool bShouldLoop;
+        // lol temp
+        inline static bool execute_all = true;
+        bool should_loop;
         void Loop();
 
         // https://www.music.mcgill.ca/~gary/rtmidi/
@@ -25,7 +47,7 @@ namespace launchpad {
         unsigned int page = 0;
 
     public:
-        Launchpad() : bShouldLoop(true) {
+        Launchpad() : should_loop(true) {
             try {
                 in = new RtMidiIn();
                 out = new RtMidiOut();
@@ -37,8 +59,8 @@ namespace launchpad {
         };
 
         void Init();
-        static void InitDevice();
-        static void Terminate();
+        static void RunDevice();
+        static void TerminateDevice();
     };
 
 
@@ -76,6 +98,4 @@ namespace launchpad {
         constexpr unsigned char brightness_test_med[3] = { 0xB0, 0x00, 0x7E };
         constexpr unsigned char brightness_test_full[3] = { 0xB0, 0x00, 0x7F };
     }
-
-    
 };

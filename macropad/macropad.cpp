@@ -42,8 +42,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    std::thread launchpad_thread(launchpad::Launchpad::InitDevice);
-    launchpad_thread.detach();
+    std::thread launchpad_thread(launchpad::Launchpad::RunDevice);
 
     // Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
@@ -55,7 +54,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    //launchpad_thread.join();
+    launchpad::Launchpad::TerminateDevice();
+    launchpad_thread.join();
 
     return (int) msg.wParam;
 }

@@ -44,14 +44,13 @@ void launchpad::Launchpad::Init() {
 
 
     this->fullLedUpdate();
-
-    // go loop
-    this->Loop();
 }
 
-void launchpad::Launchpad::InitDevice()
+void launchpad::Launchpad::RunDevice()
 {
-    (new Launchpad())->Init();
+    Launchpad *a = new Launchpad();
+    a->Init();
+    a->Loop();
 }
 
 /// <summary>
@@ -62,10 +61,15 @@ void launchpad::Launchpad::Loop() {
     int nBytes, i;
     double stamp;
 
-    while (bShouldLoop) 
+    while (should_loop && execute_all)
     {
         stamp = in->getMessage(&message);
         nBytes = message.size();
+
+        if (nBytes == 0) {
+            continue;
+        }
+
         for (i = 0; i < nBytes; i++)
             _DebugString("Byte " + std::to_string(i) + " = " + std::to_string((int)message[i]) + ", ");
         if (nBytes > 0)
@@ -74,7 +78,6 @@ void launchpad::Launchpad::Loop() {
         if (nBytes == 3) {
             // grid button pressed or released.
             if (message[0] == 0x90) {
-
                 // we want to only handle inside grid buttons, not the "page" side buttons.
                 if (message[1] % 0x10 <= 0x07) {
                     // pressed
@@ -95,7 +98,6 @@ void launchpad::Launchpad::Loop() {
 
                         this->fullLedUpdate();
 
-
                     }
                     // released.
                     else if (message[2] == 0x00) {
@@ -108,7 +110,7 @@ void launchpad::Launchpad::Loop() {
                 // pressed
                 if (message[2] == 0x7F) {
                     if (message[1] >= 108)
-                        mode = (launchpad::mode)message[1];
+                        mode = static_cast<launchpad::mode>(message[1]);
 
                     this->fullLedUpdate();
                 }
@@ -118,14 +120,20 @@ void launchpad::Launchpad::Loop() {
                 }
             }
         }
-
         message.clear();
     }
 }
 
 void launchpad::Launchpad::sendMessage(unsigned char* message)
 {
-    out->sendMessage(message, sizeof(unsigned char) * 3);
+    try {
+        out->sendMessage(message, sizeof(unsigned char) * 3);
+    }
+    catch (RtMidiError& error) {
+        error.printMessage();
+        _DebugString(error.getMessage());
+    }
+    
     delete message;
 }
 
@@ -143,7 +151,7 @@ void launchpad::Launchpad::fullLedUpdate()
 
 }
 
-void launchpad::Launchpad::Terminate()
+void launchpad::Launchpad::TerminateDevice()
 {
-
+    execute_all = false;
 }
