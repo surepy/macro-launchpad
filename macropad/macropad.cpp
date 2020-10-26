@@ -4,7 +4,7 @@
 #include "framework.h"
 #include "macropad.h"
 
-#define MAX_LOADSTRING 100
+#define MAX_LOADSTRING 200
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -16,6 +16,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    FormDlgproc(HWND Arg1, UINT Arg2, WPARAM Arg3, LPARAM Arg4);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -60,8 +61,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int) msg.wParam;
 }
 
-
-
 //
 //  FUNCTION: MyRegisterClass()
 //
@@ -102,18 +101,59 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW ,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
+   HWND hWindForm = CreateDialog(hInst, MAKEINTRESOURCE(IDD_FORMVIEW), hWnd, FormDlgproc);
+
+   if (!(hWnd || hWindForm))
    {
       return FALSE;
    }
 
    ShowWindow(hWnd, nCmdShow);
+   ShowWindow(hWindForm, SW_SHOW);
    UpdateWindow(hWnd);
 
+
    return TRUE;
+}
+
+
+INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_INITDIALOG:
+        return TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDC_LAUNCHPAD_TEST_LOW:
+            launchpad::Launchpad::GetDevice()->low_brightness_test();
+            break;
+        case IDC_LAUNCHPAD_TEST_MED:
+            launchpad::Launchpad::GetDevice()->medium_brightness_test();
+            break;
+        case IDC_LAUNCHPAD_TEST_FULL:
+            launchpad::Launchpad::GetDevice()->full_brightness_test();
+            break;
+        case IDC_LAUNCHPAD_REFRESH:
+            launchpad::Launchpad::GetDevice()->fullLedUpdate();
+            break;
+        case IDC_LAUNCHPAD_RESET:
+            launchpad::Launchpad::GetDevice()->reset();
+            break;
+        case IDCANCEL:
+            EndDialog(hdlg, IDCANCEL);
+            break;
+        }
+        
+        break;
+    default:
+        return FALSE;
+    }
+    return FALSE;
 }
 
 //
@@ -128,6 +168,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    _asm {
+        mov eax, edx 
+    }
+
+
     switch (message)
     {
     case WM_COMMAND:

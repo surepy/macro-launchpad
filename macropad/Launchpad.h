@@ -32,6 +32,11 @@ namespace launchpad {
     class Launchpad {
         // lol temp
         inline static bool execute_all = true;
+        
+        // TODO: multiple device support and think of an actual working execution flow which makes sense 
+        // what the FUCK is this shit
+        inline static Launchpad* main_device;
+
         bool should_loop;
         void Loop();
 
@@ -39,9 +44,6 @@ namespace launchpad {
         RtMidiIn* in;
         RtMidiOut* out;
 
-        void sendMessage(unsigned char* message);
-
-        void fullLedUpdate();
 
         mode mode = mode::session;
         unsigned int page = 0;
@@ -59,13 +61,35 @@ namespace launchpad {
         };
 
         void Init();
+        void sendMessage(unsigned char* message);
+        void fullLedUpdate();
+
+        // launchpad defined.
+        void reset();
+        //void select_grid_mapping_mode();
+        void low_brightness_test();
+        void medium_brightness_test();
+        void full_brightness_test();
+
+
         static void RunDevice();
         static void TerminateDevice();
+        // ?
+        inline static Launchpad* GetDevice() { return main_device; }
     };
 
 
     // look at the Launchpad Programmer’s Reference.
     namespace commands {
+
+        enum led_brightness {
+            off = 0,
+            low,
+            medium,
+            high
+        };
+
+        // pre-caluclated values.
         constexpr unsigned char vel_off_off = 0x0C;
         constexpr unsigned char vel_red_low = 0x0D;
         constexpr unsigned char vel_red_full = 0x0F;
@@ -74,10 +98,11 @@ namespace launchpad {
 
         constexpr unsigned char vel_red_full_flashing = 0x0B;
 
-        inline unsigned char calculate_velocity(unsigned char green, unsigned char red) {
+        inline unsigned char calculate_velocity(int green, int red) {
             return (0x10 * green) + red + 0x0C;
         }
-        inline unsigned char calculate_velocity(unsigned char green, unsigned char red, unsigned char flags) {
+
+        inline unsigned char calculate_velocity(int green, int red, unsigned char flags) {
             return (0x10 * green) + red + flags;
         }
 
@@ -85,12 +110,17 @@ namespace launchpad {
             return new unsigned char[3] { 0xB0, controller, data};
         }
 
+        // note: don't use these two functions for setting the LEDS for the automap/ Live control LEDs, they are 0xB0.
         inline unsigned char* led_off(unsigned char key, unsigned char velocity) {
             return new unsigned char[3] { 0x80, key, velocity};
         }
 
         inline unsigned char* led_on(unsigned char key, unsigned char velocity) {
             return new unsigned char[3] { 0x90, key, velocity};
+        }
+
+        inline unsigned char calculate_grid(unsigned char row, unsigned char column) {
+            return (0x10 * row) + column;
         }
 
         constexpr unsigned char reset[3] = { 0xB0, 0x00, 0x00 };

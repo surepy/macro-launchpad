@@ -46,11 +46,31 @@ void launchpad::Launchpad::Init() {
     this->fullLedUpdate();
 }
 
+void launchpad::Launchpad::reset()
+{
+    out->sendMessage(launchpad::commands::reset, sizeof(unsigned char) * 3);
+}
+
+void launchpad::Launchpad::low_brightness_test()
+{
+    out->sendMessage(launchpad::commands::brightness_test_low, sizeof(unsigned char) * 3);
+}
+
+void launchpad::Launchpad::medium_brightness_test()
+{
+    out->sendMessage(launchpad::commands::brightness_test_med, sizeof(unsigned char) * 3);
+}
+
+void launchpad::Launchpad::full_brightness_test()
+{
+    out->sendMessage(launchpad::commands::brightness_test_full, sizeof(unsigned char) * 3);
+}
+
 void launchpad::Launchpad::RunDevice()
 {
-    Launchpad *a = new Launchpad();
-    a->Init();
-    a->Loop();
+    main_device = new Launchpad();
+    main_device->Init();
+    main_device->Loop();
 }
 
 /// <summary>
@@ -66,6 +86,7 @@ void launchpad::Launchpad::Loop() {
         stamp = in->getMessage(&message);
         nBytes = message.size();
 
+        // no message. skip
         if (nBytes == 0) {
             continue;
         }
@@ -97,7 +118,6 @@ void launchpad::Launchpad::Loop() {
                         page = message[1] / 0x10;
 
                         this->fullLedUpdate();
-
                     }
                     // released.
                     else if (message[2] == 0x00) {
@@ -122,8 +142,12 @@ void launchpad::Launchpad::Loop() {
         }
         message.clear();
     }
+
+    // end of loop. reset
+    this->reset();
 }
 
+// custom calculated messages go here
 void launchpad::Launchpad::sendMessage(unsigned char* message)
 {
     try {
@@ -155,3 +179,4 @@ void launchpad::Launchpad::TerminateDevice()
 {
     execute_all = false;
 }
+
