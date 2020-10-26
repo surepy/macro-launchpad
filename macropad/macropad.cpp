@@ -168,11 +168,6 @@ INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    _asm {
-        mov eax, edx 
-    }
-
-
     switch (message)
     {
     case WM_COMMAND:
