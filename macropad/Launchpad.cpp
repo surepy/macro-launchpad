@@ -1,5 +1,6 @@
 #include "Launchpad.h"
 #include "macropad.h"
+#include <array>
 
 void launchpad::Launchpad::Init() {
     unsigned int nPorts = in->getPortCount();
@@ -180,6 +181,23 @@ void launchpad::Launchpad::fullLedUpdate()
 
     // update every LEDs.
     if ((size_t)page < pages.size()) {
+
+        // row
+        for (size_t row = 0; row < pages.at(page)->size(); ++row) {
+            // column
+            for (size_t col = 0; col < pages.at(page)->at(row).size(); ++col) {
+                config::ButtonBase* button = pages.at(page)->at(row).at(col);
+
+                if (button == nullptr) {
+                    continue;
+                }
+
+                this->sendMessage(launchpad::commands::led_on(commands::calculate_grid(row, col), button->get_color()));
+            }
+        
+        }
+
+        /*
         config::ButtonBase** page_buttons = pages.at((size_t)page);
 
         // fixed array size.. should be..... fine?
@@ -188,29 +206,22 @@ void launchpad::Launchpad::fullLedUpdate()
                 continue;
 
             this->sendMessage(launchpad::commands::led_on(i, page_buttons[i]->get_color()));
-        }
+        }*/
     }
 
 }
 
 void launchpad::Launchpad::setup_pages()
 {
-    config::ButtonBase** page = new config::ButtonBase * [64] { nullptr };
-
-    config::ButtonBase*** col = new config::ButtonBase ** [8]{ nullptr };
-
-    config::ButtonBase** row = new config::ButtonBase * [8]{ nullptr };
-
-
+    launchpad_grid page{ nullptr };
 
     config::ButtonBase* button = new config::ButtonSimpleMacro();
 
     button->set_color(launchpad::commands::calculate_velocity(3, 3));
 
-    page[0] = nullptr;
-    page[63] = button;
+    page.at(7)[7] = button;
 
-    pages.push_back(page);
+    //pages.push_back(&page);
 }
 
 void launchpad::Launchpad::TerminateDevice()

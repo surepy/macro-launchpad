@@ -13,7 +13,7 @@ namespace launchpad {
         class ButtonBase {
             unsigned char color;
         public:
-            ButtonBase() {}
+            ButtonBase() : color(0x0C) {}
             virtual ~ButtonBase() {}
             virtual void execute() = 0;
             inline void set_color(unsigned char col) { color = col; };
@@ -31,6 +31,8 @@ namespace launchpad {
             void execute();
         };
     }
+
+    typedef std::array<std::array<launchpad::config::ButtonBase*, 8>, 8> launchpad_grid;
 
     class Launchpad {
         // lol temp
@@ -50,7 +52,7 @@ namespace launchpad {
         mode mode = mode::session;
         unsigned int page = 0;
 
-        std::vector<config::ButtonBase**> pages;
+        std::vector<launchpad_grid*> pages;
 
     public:
         Launchpad() : should_loop(true) {
