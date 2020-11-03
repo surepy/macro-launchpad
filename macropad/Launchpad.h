@@ -11,10 +11,13 @@ namespace launchpad {
 
     namespace config {
         class ButtonBase {
+            unsigned char color;
         public:
             ButtonBase() {}
             virtual ~ButtonBase() {}
             virtual void execute() = 0;
+            inline void set_color(unsigned char col) { color = col; };
+            inline unsigned char get_color() { return color; };
         };
 
         class ButtonSimpleMacro : public ButtonBase {
@@ -44,9 +47,10 @@ namespace launchpad {
         RtMidiIn* in;
         RtMidiOut* out;
 
-
         mode mode = mode::session;
         unsigned int page = 0;
+
+        std::vector<config::ButtonBase**> pages;
 
     public:
         Launchpad() : should_loop(true) {
@@ -63,6 +67,7 @@ namespace launchpad {
         void Init();
         void sendMessage(unsigned char* message);
         void fullLedUpdate();
+        void setup_pages();
 
         // launchpad defined.
         void reset();
@@ -74,7 +79,9 @@ namespace launchpad {
 
         static void RunDevice();
         static void TerminateDevice();
-        // ?
+
+        // testing purposes thing proof of consept 1 device thing
+        // please fix later
         inline static Launchpad* GetDevice() { return main_device; }
     };
 

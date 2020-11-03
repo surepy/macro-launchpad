@@ -101,7 +101,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW ,
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
    HWND hWindForm = CreateDialog(hInst, MAKEINTRESOURCE(IDD_FORMVIEW), hWnd, FormDlgproc);
@@ -110,6 +110,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
+
 
    ShowWindow(hWnd, nCmdShow);
    ShowWindow(hWindForm, SW_SHOW);
@@ -143,6 +144,9 @@ INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             break;
         case IDC_LAUNCHPAD_RESET:
             launchpad::Launchpad::GetDevice()->reset();
+            break;
+        case IDC_BUTTON_TEST2:
+            launchpad::Launchpad::GetDevice()->setup_pages();
             break;
         case IDCANCEL:
             EndDialog(hdlg, IDCANCEL);
@@ -212,7 +216,6 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_INITDIALOG:
         return (INT_PTR)TRUE;
-
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
         {

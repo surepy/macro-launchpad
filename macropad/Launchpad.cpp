@@ -104,6 +104,10 @@ void launchpad::Launchpad::Loop() {
                     // pressed
                     if (message[2] == 0x7F) {
                         this->sendMessage(launchpad::commands::led_on(message[1], launchpad::commands::vel_red_full));
+
+                        if (page < pages.size()) {
+
+                        }
                     }
                     // released.
                     else if (message[2] == 0x00) {
@@ -117,6 +121,7 @@ void launchpad::Launchpad::Loop() {
                         // change page.
                         page = message[1] / 0x10;
 
+                        // update all buttons
                         this->fullLedUpdate();
                     }
                     // released.
@@ -158,7 +163,7 @@ void launchpad::Launchpad::sendMessage(unsigned char* message)
         _DebugString(error.getMessage());
     }
     
-    delete message;
+    delete[] message;
 }
 
 // this will literally update EVERYTHING. do NOT call this functionm unless you ABSOLUTELY NEED TO!
@@ -173,6 +178,39 @@ void launchpad::Launchpad::fullLedUpdate()
     // set our "mode" indicator
     this->sendMessage(new unsigned char[3]{ 0xB0, (unsigned char)mode, launchpad::commands::vel_yellow_full });
 
+    // update every LEDs.
+    if ((size_t)page < pages.size()) {
+        config::ButtonBase** page_buttons = pages.at((size_t)page);
+
+        // fixed array size.. should be..... fine?
+        for (size_t i = 0; i < 64; ++i) {
+            if (page_buttons[i] == nullptr)
+                continue;
+
+            this->sendMessage(launchpad::commands::led_on(i, page_buttons[i]->get_color()));
+        }
+    }
+
+}
+
+void launchpad::Launchpad::setup_pages()
+{
+    config::ButtonBase** page = new config::ButtonBase * [64] { nullptr };
+
+    config::ButtonBase*** col = new config::ButtonBase ** [8]{ nullptr };
+
+    config::ButtonBase** row = new config::ButtonBase * [8]{ nullptr };
+
+
+
+    config::ButtonBase* button = new config::ButtonSimpleMacro();
+
+    button->set_color(launchpad::commands::calculate_velocity(3, 3));
+
+    page[0] = nullptr;
+    page[63] = button;
+
+    pages.push_back(page);
 }
 
 void launchpad::Launchpad::TerminateDevice()
@@ -180,3 +218,10 @@ void launchpad::Launchpad::TerminateDevice()
     execute_all = false;
 }
 
+void launchpad::config::ButtonSimpleMacro::execute()
+{
+}
+
+void launchpad::config::ButtonComplexMacro::execute()
+{
+}
