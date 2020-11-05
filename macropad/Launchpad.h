@@ -1,6 +1,7 @@
 #pragma once
 #include "RtMidi.h"
 
+// this namespace organization does not make any sense.
 namespace launchpad {
     enum class mode {
         session = 108,
@@ -23,6 +24,8 @@ namespace launchpad {
         class ButtonSimpleMacro : public ButtonBase {
             int keycode;
         public:
+            ButtonSimpleMacro() : keycode(-1) {}
+            ButtonSimpleMacro(int keycode) : keycode(keycode) {}
             void execute();
         };
 
@@ -44,6 +47,8 @@ namespace launchpad {
 
         bool should_loop;
         void Loop();
+
+        launchpad::config::ButtonBase* get_button(unsigned char num);
 
         // https://www.music.mcgill.ca/~gary/rtmidi/
         RtMidiIn* in;
@@ -130,6 +135,11 @@ namespace launchpad {
 
         inline unsigned char calculate_grid(unsigned char row, unsigned char column) {
             return (0x10 * row) + column;
+        }
+
+        inline void calculate_xy_fom_keycode(unsigned char keycode, int &x, int &y) {
+            x = keycode / 0x10;
+            y = keycode % 0x10;
         }
 
         constexpr unsigned char reset[3] = { 0xB0, 0x00, 0x00 };

@@ -1,5 +1,6 @@
 #include "Launchpad.h"
 #include "macropad.h"
+#include <windows.h>
 #include <array>
 
 void launchpad::Launchpad::Init() {
@@ -81,6 +82,7 @@ void launchpad::Launchpad::Loop() {
     std::vector<unsigned char> message;
     int nBytes, i;
     double stamp;
+    launchpad::config::ButtonBase* button;
 
     while (should_loop && execute_all)
     {
@@ -102,18 +104,22 @@ void launchpad::Launchpad::Loop() {
             if (message[0] == 0x90) {
                 // we want to only handle inside grid buttons, not the "page" side buttons.
                 if (message[1] % 0x10 <= 0x07) {
+                    button = get_button(message[1]);
+
                     // pressed
                     if (message[2] == 0x7F) {
                         this->sendMessage(launchpad::commands::led_on(message[1], launchpad::commands::vel_red_full));
-
-                        if (page < pages.size()) {
-
-                        }
                     }
                     // released.
                     else if (message[2] == 0x00) {
-                        // TODO: revert to previous state.
-                        this->sendMessage(launchpad::commands::led_off(message[1], launchpad::commands::vel_off_off));
+                        if (button == nullptr) {
+                            this->sendMessage(launchpad::commands::led_off(message[1], launchpad::commands::vel_off_off));
+                        }
+                        else {
+                            button->execute();
+
+                            this->sendMessage(launchpad::commands::led_on(message[1], button->get_color()));
+                        }
                     }
                 }
                 else {
@@ -146,11 +152,24 @@ void launchpad::Launchpad::Loop() {
                 }
             }
         }
+        button = nullptr;
         message.clear();
     }
 
     // end of loop. reset
     this->reset();
+}
+
+launchpad::config::ButtonBase* launchpad::Launchpad::get_button(unsigned char key)
+{
+    if (page >= pages.size()) {
+        return nullptr;
+    }
+
+    int x, y;
+    commands::calculate_xy_fom_keycode(key, x, y);
+
+    return pages.at(page)->at(x).at(y);
 }
 
 // custom calculated messages go here
@@ -213,15 +232,15 @@ void launchpad::Launchpad::fullLedUpdate()
 
 void launchpad::Launchpad::setup_pages()
 {
-    launchpad_grid page{ nullptr };
+    launchpad_grid* page = new launchpad_grid{ nullptr };
 
-    config::ButtonBase* button = new config::ButtonSimpleMacro();
+    config::ButtonBase* button = new config::ButtonSimpleMacro(0x41);
 
     button->set_color(launchpad::commands::calculate_velocity(3, 3));
 
-    page.at(7)[7] = button;
+    page->at(7)[7] = button;
 
-    //pages.push_back(&page);
+    pages.push_back(page);
 }
 
 void launchpad::Launchpad::TerminateDevice()
@@ -231,6 +250,30 @@ void launchpad::Launchpad::TerminateDevice()
 
 void launchpad::config::ButtonSimpleMacro::execute()
 {
+    if (keycode == -1) {
+        return;
+    }
+
+    INPUT input;
+
+    input.type = INPUT_KEYBOARD;
+    input.ki.time = 0;
+    input.ki.wScan = 0;
+    input.ki.dwExtraInfo = 0;
+
+    input.ki.wVk = keycode;
+    input.ki.dwFlags = 0;
+
+    // send
+    SendInput(1, &input, sizeof(INPUT));
+
+    // wait
+    Sleep(100);
+
+    // release
+    input.ki.dwFlags = KEYEVENTF_KEYUP;
+    SendInput(1, &input, sizeof(INPUT));
+
 }
 
 void launchpad::config::ButtonComplexMacro::execute()
