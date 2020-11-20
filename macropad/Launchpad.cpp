@@ -44,7 +44,6 @@ void launchpad::Launchpad::Init() {
         }
     }
 
-
     this->fullLedUpdate();
 }
 
@@ -215,17 +214,6 @@ void launchpad::Launchpad::fullLedUpdate()
             }
         
         }
-
-        /*
-        config::ButtonBase** page_buttons = pages.at((size_t)page);
-
-        // fixed array size.. should be..... fine?
-        for (size_t i = 0; i < 64; ++i) {
-            if (page_buttons[i] == nullptr)
-                continue;
-
-            this->sendMessage(launchpad::commands::led_on(i, page_buttons[i]->get_color()));
-        }*/
     }
 
 }
@@ -236,7 +224,7 @@ void launchpad::Launchpad::setup_pages()
 
     config::ButtonBase* button = new config::ButtonSimpleMacro(0x41);
 
-    button->set_color(launchpad::commands::calculate_velocity(3, 3));
+    button->set_color(launchpad::commands::calculate_velocity(commands::led_brightness::high, commands::led_brightness::high));
 
     page->at(7)[7] = button;
 

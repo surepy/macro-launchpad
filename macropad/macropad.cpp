@@ -113,7 +113,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 
    ShowWindow(hWnd, nCmdShow);
-   ShowWindow(hWindForm, SW_SHOW);
    UpdateWindow(hWnd);
 
 
@@ -123,6 +122,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    UNREFERENCED_PARAMETER(lParam);
+
     switch (uMsg)
     {
     case WM_INITDIALOG:
