@@ -258,7 +258,7 @@ void launchpad::Launchpad::setup_pages()
 
     config::ButtonBase* button = new config::ButtonSimpleMacro(0x41);
 
-    button->set_color(launchpad::commands::calculate_velocity(3, 3));
+    button->set_color(launchpad::commands::calculate_velocity(commands::led_brightness::high, commands::led_brightness::high));
 
     page->at(7)[7] = button;
 
@@ -300,5 +300,5 @@ void launchpad::config::ButtonSimpleMacro::execute()
 
 void launchpad::config::ButtonComplexMacro::execute()
 {
-    
+
 }

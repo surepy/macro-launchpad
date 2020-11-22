@@ -11,7 +11,9 @@ namespace launchpad {
     };
 
     namespace config {
+        class ConfigFile {
 
+        };
 
         class ButtonBase {
             unsigned char color;
