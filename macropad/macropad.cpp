@@ -3,6 +3,7 @@
 
 #include "framework.h"
 #include "macropad.h"
+#include <Dbt.h>
 
 #define MAX_LOADSTRING 200
 
@@ -174,6 +175,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_DEVICECHANGE:
+        switch (LOWORD(wParam))
+        {
+        case DBT_DEVICEREMOVECOMPLETE:
+
+            break;
+        }
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);

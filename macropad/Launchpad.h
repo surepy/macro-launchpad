@@ -11,6 +11,8 @@ namespace launchpad {
     };
 
     namespace config {
+
+
         class ButtonBase {
             unsigned char color;
         public:
@@ -66,7 +68,7 @@ namespace launchpad {
                 out = new RtMidiOut();
             }
             catch (RtMidiError& error) {
-                error.printMessage();
+                _DebugString(error.getMessage());
                 exit(EXIT_FAILURE);
             }
         };

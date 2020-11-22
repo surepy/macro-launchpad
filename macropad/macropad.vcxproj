@@ -156,6 +156,7 @@
     <ClInclude Include="macropad.h">
       <FileType>CppHeader</FileType>
     </ClInclude>
+    <ClInclude Include="MidiDevice.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RtMidi.h" />
     <ClInclude Include="targetver.h" />
@@ -163,6 +164,7 @@
   <ItemGroup>
     <ClCompile Include="Launchpad.cpp" />
     <ClCompile Include="macropad.cpp" />
+    <ClCompile Include="MidiDevice.cpp" />
     <ClCompile Include="RtMidi.cpp" />
   </ItemGroup>
   <ItemGroup>

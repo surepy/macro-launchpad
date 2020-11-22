@@ -19,6 +19,7 @@
 #include <iostream>
 #include <cstdlib>
 #include "RtMidi.h"
+#include "MidiDevice.h"
 #include "Launchpad.h"
 #include "macropad.h"
  

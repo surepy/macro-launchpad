@@ -18,7 +18,12 @@ void launchpad::Launchpad::Init() {
 
         if (portName.find("Launchpad S") != std::string::npos) {
             _DebugString("Using input port " + std::to_string(i) + ".\n");
-            in->openPort(i);
+            try {
+                in->openPort(i);
+            }
+            catch (RtMidiError& error) {
+                _DebugString("Failed to use input port.\n");
+            }
             break;
         }
     }
@@ -39,32 +44,52 @@ void launchpad::Launchpad::Init() {
 
         if (portName.find("Launchpad S") != std::string::npos) {
             _DebugString("Using output port " + std::to_string(i) + ".\n");
-            out->openPort(i);
+            try {
+                out->openPort(i);
+            }
+            catch (RtMidiError& error) {
+                _DebugString("Failed to use output port.\n");
+            }
             break;
         }
     }
-
 
     this->fullLedUpdate();
 }
 
 void launchpad::Launchpad::reset()
 {
+    // don't do anything.
+    if (!out->isPortOpen())
+        return;
+
     out->sendMessage(launchpad::commands::reset, sizeof(unsigned char) * 3);
 }
 
 void launchpad::Launchpad::low_brightness_test()
 {
+    // don't do anything.
+    if (!out->isPortOpen())
+        return;
+
     out->sendMessage(launchpad::commands::brightness_test_low, sizeof(unsigned char) * 3);
 }
 
 void launchpad::Launchpad::medium_brightness_test()
 {
+    // don't do anything.
+    if (!out->isPortOpen())
+        return;
+
     out->sendMessage(launchpad::commands::brightness_test_med, sizeof(unsigned char) * 3);
 }
 
 void launchpad::Launchpad::full_brightness_test()
 {
+    // don't do anything.
+    if (!out->isPortOpen())
+        return;
+
     out->sendMessage(launchpad::commands::brightness_test_full, sizeof(unsigned char) * 3);
 }
 
@@ -175,6 +200,10 @@ launchpad::config::ButtonBase* launchpad::Launchpad::get_button(unsigned char ke
 // custom calculated messages go here
 void launchpad::Launchpad::sendMessage(unsigned char* message)
 {
+    if (!out->isPortOpen()) {  
+        goto cleanup;
+    }
+    
     try {
         out->sendMessage(message, sizeof(unsigned char) * 3);
     }
@@ -183,12 +212,17 @@ void launchpad::Launchpad::sendMessage(unsigned char* message)
         _DebugString(error.getMessage());
     }
     
-    delete[] message;
+    cleanup: 
+        delete[] message;
 }
 
 // this will literally update EVERYTHING. do NOT call this functionm unless you ABSOLUTELY NEED TO!
 void launchpad::Launchpad::fullLedUpdate()
 {
+    // don't do anything.
+    if (!out->isPortOpen())
+        return;
+
     // reset everything first.
     out->sendMessage(launchpad::commands::reset, sizeof(unsigned char) * 3);
 
@@ -215,19 +249,7 @@ void launchpad::Launchpad::fullLedUpdate()
             }
         
         }
-
-        /*
-        config::ButtonBase** page_buttons = pages.at((size_t)page);
-
-        // fixed array size.. should be..... fine?
-        for (size_t i = 0; i < 64; ++i) {
-            if (page_buttons[i] == nullptr)
-                continue;
-
-            this->sendMessage(launchpad::commands::led_on(i, page_buttons[i]->get_color()));
-        }*/
     }
-
 }
 
 void launchpad::Launchpad::setup_pages()
@@ -278,4 +300,5 @@ void launchpad::config::ButtonSimpleMacro::execute()
 
 void launchpad::config::ButtonComplexMacro::execute()
 {
+    
 }

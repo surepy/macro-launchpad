@@ -33,6 +33,9 @@
     <ClInclude Include="Launchpad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MidiDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="macropad.cpp">
@@ -42,6 +45,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Launchpad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MidiDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
