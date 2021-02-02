@@ -1,7 +1,6 @@
 // header.h : include file for standard system include files,
 // or project specific include files
 //
-
 #pragma once
 
 #include "targetver.h"
@@ -21,5 +20,6 @@
 #include "RtMidi.h"
 #include "MidiDevice.h"
 #include "Launchpad.h"
+#include "Config.h"
 #include "macropad.h"
  

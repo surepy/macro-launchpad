@@ -1,9 +1,11 @@
-#include "Launchpad.h"
-#include "macropad.h"
 #include <windows.h>
 #include <array>
+#include "Launchpad.h"
+#include "macropad.h"
 
-void launchpad::Launchpad::Init() {
+// r
+
+void midi_device::launchpad::Launchpad::Init() {
     unsigned int nPorts = in->getPortCount();
     _DebugString("There are " + std::to_string(nPorts) + " MIDI input sources available.\n");
     std::string portName;
@@ -57,7 +59,7 @@ void launchpad::Launchpad::Init() {
     this->fullLedUpdate();
 }
 
-void launchpad::Launchpad::reset()
+void midi_device::launchpad::Launchpad::reset()
 {
     // don't do anything.
     if (!out->isPortOpen())
@@ -66,7 +68,7 @@ void launchpad::Launchpad::reset()
     out->sendMessage(launchpad::commands::reset, sizeof(unsigned char) * 3);
 }
 
-void launchpad::Launchpad::low_brightness_test()
+void midi_device::launchpad::Launchpad::low_brightness_test()
 {
     // don't do anything.
     if (!out->isPortOpen())
@@ -75,7 +77,7 @@ void launchpad::Launchpad::low_brightness_test()
     out->sendMessage(launchpad::commands::brightness_test_low, sizeof(unsigned char) * 3);
 }
 
-void launchpad::Launchpad::medium_brightness_test()
+void midi_device::launchpad::Launchpad::medium_brightness_test()
 {
     // don't do anything.
     if (!out->isPortOpen())
@@ -84,7 +86,7 @@ void launchpad::Launchpad::medium_brightness_test()
     out->sendMessage(launchpad::commands::brightness_test_med, sizeof(unsigned char) * 3);
 }
 
-void launchpad::Launchpad::full_brightness_test()
+void midi_device::launchpad::Launchpad::full_brightness_test()
 {
     // don't do anything.
     if (!out->isPortOpen())
@@ -93,7 +95,7 @@ void launchpad::Launchpad::full_brightness_test()
     out->sendMessage(launchpad::commands::brightness_test_full, sizeof(unsigned char) * 3);
 }
 
-void launchpad::Launchpad::RunDevice()
+void midi_device::launchpad::Launchpad::RunDevice()
 {
     main_device = new Launchpad();
     main_device->Init();
@@ -103,7 +105,7 @@ void launchpad::Launchpad::RunDevice()
 /// <summary>
 /// launchpad input loop...
 /// </summary>
-void launchpad::Launchpad::Loop() {
+void midi_device::launchpad::Launchpad::Loop() {
     std::vector<unsigned char> message;
     int nBytes, i;
     double stamp;
@@ -185,7 +187,7 @@ void launchpad::Launchpad::Loop() {
     this->reset();
 }
 
-launchpad::config::ButtonBase* launchpad::Launchpad::get_button(unsigned char key)
+midi_device::launchpad::config::ButtonBase* midi_device::launchpad::Launchpad::get_button(unsigned char key)
 {
     if (page >= pages.size()) {
         return nullptr;
@@ -198,7 +200,7 @@ launchpad::config::ButtonBase* launchpad::Launchpad::get_button(unsigned char ke
 }
 
 // custom calculated messages go here
-void launchpad::Launchpad::sendMessage(unsigned char* message)
+void midi_device::launchpad::Launchpad::sendMessage(unsigned char* message)
 {
     if (!out->isPortOpen()) {  
         goto cleanup;
@@ -217,7 +219,7 @@ void launchpad::Launchpad::sendMessage(unsigned char* message)
 }
 
 // this will literally update EVERYTHING. do NOT call this functionm unless you ABSOLUTELY NEED TO!
-void launchpad::Launchpad::fullLedUpdate()
+void midi_device::launchpad::Launchpad::fullLedUpdate()
 {
     // don't do anything.
     if (!out->isPortOpen())
@@ -252,11 +254,11 @@ void launchpad::Launchpad::fullLedUpdate()
     }
 }
 
-void launchpad::Launchpad::setup_pages()
+void midi_device::launchpad::Launchpad::setup_pages()
 {
     launchpad_grid* page = new launchpad_grid{ nullptr };
 
-    config::ButtonBase* button = new config::ButtonSimpleMacro(0x41);
+    config::ButtonBase* button = new config::ButtonSimpleKeycodeTest(0x41);
 
     button->set_color(launchpad::commands::calculate_velocity(commands::led_brightness::high, commands::led_brightness::high));
 
@@ -265,12 +267,12 @@ void launchpad::Launchpad::setup_pages()
     pages.push_back(page);
 }
 
-void launchpad::Launchpad::TerminateDevice()
+void midi_device::launchpad::Launchpad::TerminateDevice()
 {
     execute_all = false;
 }
 
-void launchpad::config::ButtonSimpleMacro::execute()
+void midi_device::launchpad::config::ButtonSimpleKeycodeTest::execute()
 {
     if (keycode == -1) {
         return;
@@ -298,7 +300,22 @@ void launchpad::config::ButtonSimpleMacro::execute()
 
 }
 
-void launchpad::config::ButtonComplexMacro::execute()
+void midi_device::launchpad::config::ButtonComplexMacro::execute()
 {
 
+}
+
+std::wstring midi_device::launchpad::config::ButtonBase::to_wstring()
+{
+    return L"midi_device::launchpad::config::ButtonBase : empty button";
+}
+
+std::wstring midi_device::launchpad::config::ButtonComplexMacro::to_wstring()
+{
+    return L"midi_device::launchpad::config::ButtonComplexMacro : color=" + this->get_color();
+}
+
+std::wstring midi_device::launchpad::config::ButtonSimpleKeycodeTest::to_wstring()
+{
+    return L"midi_device::launchpad::config::ButtonComplexMacro : color=" + std::to_wstring(this->get_color()) + L" keycode=" + std::to_wstring(this->keycode);
 }

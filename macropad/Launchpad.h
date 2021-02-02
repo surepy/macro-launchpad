@@ -1,8 +1,9 @@
 #pragma once
 #include "RtMidi.h"
+#include "MidiDevice.h"
 
 // this namespace organization does not make any sense.
-namespace launchpad {
+namespace midi_device::launchpad {
     enum class mode {
         session = 108,
         user1,
@@ -21,27 +22,31 @@ namespace launchpad {
             ButtonBase() : color(0x0C) {}
             virtual ~ButtonBase() {}
             virtual void execute() = 0;
+            virtual std::wstring to_wstring() = 0;
             inline void set_color(unsigned char col) { color = col; };
             inline unsigned char get_color() { return color; };
         };
 
-        class ButtonSimpleMacro : public ButtonBase {
+        class ButtonSimpleKeycodeTest : public ButtonBase {
             int keycode;
         public:
-            ButtonSimpleMacro() : keycode(-1) {}
-            ButtonSimpleMacro(int keycode) : keycode(keycode) {}
+            ButtonSimpleKeycodeTest() : keycode(-1) {}
+            ButtonSimpleKeycodeTest(int keycode) : keycode(keycode) {}
             void execute();
+            std::wstring to_wstring();
         };
 
         class ButtonComplexMacro : public ButtonBase {
         public:
             void execute();
+            std::wstring to_wstring();
         };
     }
 
+    typedef std::array<launchpad::config::ButtonBase*, 8> launchpad_row;
     typedef std::array<std::array<launchpad::config::ButtonBase*, 8>, 8> launchpad_grid;
 
-    class Launchpad {
+    class Launchpad : public MidiDeviceBase {
         // lol temp
         inline static bool execute_all = true;
         
@@ -65,14 +70,8 @@ namespace launchpad {
 
     public:
         Launchpad() : should_loop(true) {
-            try {
-                in = new RtMidiIn();
-                out = new RtMidiOut();
-            }
-            catch (RtMidiError& error) {
-                _DebugString(error.getMessage());
-                exit(EXIT_FAILURE);
-            }
+            in = new RtMidiIn();
+            out = new RtMidiOut();
         };
 
         void Init();
@@ -86,6 +85,14 @@ namespace launchpad {
         void low_brightness_test();
         void medium_brightness_test();
         void full_brightness_test();
+
+        inline launchpad_grid* getCurrentButtons() {
+            if (page >= pages.size()) {
+                return nullptr;
+            }
+
+            return pages.at(page);
+        };
 
 
         static void RunDevice();

@@ -3,188 +3,176 @@
 
 #include "framework.h"
 #include "macropad.h"
+#include "Launchpad.h"
+#include <array>
 #include <Dbt.h>
 
-#define MAX_LOADSTRING 200
+namespace macropad {
+    HINSTANCE hInst;                                // current instance
+    WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
+    WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
-// Forward declarations of functions included in this code module:
-ATOM                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    FormDlgproc(HWND Arg1, UINT Arg2, WPARAM Arg3, LPARAM Arg4);
+    HWND hMainWindow;
+    HWND hMainForm;
+    HWND hList_debug_help; // lol
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
-{
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // TODO: Place code here.
-
-    // Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_MACROPAD, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
-
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
+    //
+    //  FUNCTION: MyRegisterClass()
+    //
+    //  PURPOSE: Registers the window class.
+    //
+    ATOM MyRegisterClass(HINSTANCE hInstance)
     {
-        return FALSE;
+        WNDCLASSEXW wcex;
+
+        wcex.cbSize = sizeof(WNDCLASSEX);
+
+        wcex.style = CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc = WndProc;
+        wcex.cbClsExtra = 0;
+        wcex.cbWndExtra = 0;
+        wcex.hInstance = hInstance;
+        wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MACROPAD));
+        wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+        wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_MACROPAD);
+        wcex.lpszClassName = szWindowClass;
+        wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+        return RegisterClassExW(&wcex);
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MACROPAD));
-
-    MSG msg;
-
-    std::thread launchpad_thread(launchpad::Launchpad::RunDevice);
-
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    //
+    //   FUNCTION: InitInstance(HINSTANCE, int)
+    //
+    //   PURPOSE: Saves instance handle and creates main window
+    //
+    //   COMMENTS:
+    //
+    //        In this function, we save the instance handle in a global variable and
+    //        create and display the main program window.
+    //
+    BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        hInst = hInstance; // Store instance handle in our global variable
+
+        HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+            CW_USEDEFAULT, CW_USEDEFAULT, 1010, 650, nullptr, nullptr, hInstance, nullptr);
+
+        HWND hWindForm = CreateDialog(hInst, MAKEINTRESOURCE(IDD_FORMVIEW), hWnd, FormDlgproc);
+
+        if (!(hWnd || hWindForm))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            return FALSE;
         }
-    }
 
-    launchpad::Launchpad::TerminateDevice();
-    launchpad_thread.join();
+        ShowWindow(hWnd, nCmdShow);
+        ShowWindow(hWindForm, SW_SHOW);
+        UpdateWindow(hWnd);
 
-    return (int) msg.wParam;
-}
+        macropad::hList_debug_help = GetDlgItem(hWindForm, IDC_LIST_DEBUG_HELP);
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-    WNDCLASSEXW wcex;
-
-    wcex.cbSize = sizeof(WNDCLASSEX);
-
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MACROPAD));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_MACROPAD);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    return RegisterClassExW(&wcex);
-}
-
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   hInst = hInstance; // Store instance handle in our global variable
-
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
-   HWND hWindForm = CreateDialog(hInst, MAKEINTRESOURCE(IDD_FORMVIEW), hWnd, FormDlgproc);
-
-   if (!(hWnd || hWindForm))
-   {
-      return FALSE;
-   }
-
-
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
-
-
-   return TRUE;
-}
-
-
-INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-
-    switch (uMsg)
-    {
-    case WM_INITDIALOG:
         return TRUE;
-    case WM_COMMAND:
-        switch (LOWORD(wParam))
+    }
+
+
+    INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        UNREFERENCED_PARAMETER(lParam);
+
+        switch (uMsg)
         {
-        case IDC_LAUNCHPAD_TEST_LOW:
-            launchpad::Launchpad::GetDevice()->low_brightness_test();
+        case WM_INITDIALOG:
+            return TRUE;
+        case WM_COMMAND:
+            switch (LOWORD(wParam))
+            {
+            case IDC_LAUNCHPAD_TEST_LOW:
+                midi_device::launchpad::Launchpad::GetDevice()->low_brightness_test();
+                break;
+            case IDC_LAUNCHPAD_TEST_MED:
+                midi_device::launchpad::Launchpad::GetDevice()->medium_brightness_test();
+                break;
+            case IDC_LAUNCHPAD_TEST_FULL:
+                midi_device::launchpad::Launchpad::GetDevice()->full_brightness_test();
+                break;
+            case IDC_LAUNCHPAD_REFRESH: {
+                midi_device::launchpad::Launchpad::GetDevice()->fullLedUpdate();
+
+                std::array<std::array<midi_device::launchpad::config::ButtonBase*, 8>, 8> *buttons = midi_device::launchpad::Launchpad::GetDevice()->getCurrentButtons();
+
+                //ListBox_DeleteString(macropad::hList_debug_help);
+                for (int i = ListBox_GetCount(macropad::hList_debug_help); i >= 0; i--) {
+                    ListBox_DeleteString(macropad::hList_debug_help, i);
+                }
+
+                if (buttons != nullptr) {
+                    for (size_t x = 0; x < buttons->size(); x++) {
+                        for (size_t y = 0; y < buttons->at(x).size(); y++) {
+                            midi_device::launchpad::config::ButtonBase* button = buttons->at(x).at(y);
+                            std::wstring str = L"x= " + std::to_wstring(x) + L" y= " + std::to_wstring(y) + L" ";
+
+                            if (button == nullptr) {
+                                str += L"null button";
+                            }
+                            else {
+                                str += button->to_wstring();
+                            }
+
+                            ListBox_AddString(macropad::hList_debug_help, str.c_str());
+                        }
+                    }
+
+
+                    for (const midi_device::launchpad::launchpad_row &button_row : *buttons) {
+                        for (midi_device::launchpad::config::ButtonBase* button : button_row) {
+
+                        }
+                    }
+                }
+                //                
+
+
+                
+
+
+                break;
+            }
+            case IDC_LAUNCHPAD_RESET:
+                midi_device::launchpad::Launchpad::GetDevice()->reset();
+                break;
+            case IDC_BUTTON_TEST2:
+                midi_device::launchpad::Launchpad::GetDevice()->setup_pages();
+                break;
+            case IDCANCEL:
+                EndDialog(hdlg, IDCANCEL);
+                break;
+            }
+
             break;
-        case IDC_LAUNCHPAD_TEST_MED:
-            launchpad::Launchpad::GetDevice()->medium_brightness_test();
-            break;
-        case IDC_LAUNCHPAD_TEST_FULL:
-            launchpad::Launchpad::GetDevice()->full_brightness_test();
-            break;
-        case IDC_LAUNCHPAD_REFRESH:
-            launchpad::Launchpad::GetDevice()->fullLedUpdate();
-            break;
-        case IDC_LAUNCHPAD_RESET:
-            launchpad::Launchpad::GetDevice()->reset();
-            break;
-        case IDC_BUTTON_TEST2:
-            launchpad::Launchpad::GetDevice()->setup_pages();
-            break;
-        case IDCANCEL:
-            EndDialog(hdlg, IDCANCEL);
-            break;
+        default:
+            return FALSE;
         }
-        
-        break;
-    default:
         return FALSE;
     }
-    return FALSE;
-}
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
+    //
+    //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
+    //
+    //  PURPOSE: Processes messages for the main window.
+    //
+    //  WM_COMMAND  - process the application menu
+    //  WM_PAINT    - Paint the main window
+    //  WM_DESTROY  - post a quit message and return
+    //
+    //
+    LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
-    case WM_DEVICECHANGE:
-        switch (LOWORD(wParam))
+        switch (message)
         {
-        case DBT_DEVICEREMOVECOMPLETE:
 
-            break;
-        }
-        break;
-    case WM_COMMAND:
+        case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
             // Parse the menu selections:
@@ -201,7 +189,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-    case WM_PAINT:
+        case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
@@ -209,33 +197,80 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hWnd, &ps);
         }
         break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
+        return 0;
     }
-    return 0;
+
+    // Message handler for about box.
+    INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+    {
+        UNREFERENCED_PARAMETER(lParam);
+        switch (message)
+        {
+        case WM_INITDIALOG:
+            return (INT_PTR)TRUE;
+        case WM_COMMAND:
+            if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+            {
+                EndDialog(hDlg, LOWORD(wParam));
+                return (INT_PTR)TRUE;
+            }
+            break;
+        }
+        return (INT_PTR)FALSE;
+    }
 }
 
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+
+    // TODO: Place code here.
+
+    // Initialize global strings
+    LoadStringW(hInstance, IDS_APP_TITLE, macropad::szTitle, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_MACROPAD, macropad::szWindowClass, MAX_LOADSTRING);
+    macropad::MyRegisterClass(hInstance);
+
+    // Perform application initialization:
+    if (!macropad::InitInstance(hInstance, nCmdShow))
     {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
+        return FALSE;
     }
-    return (INT_PTR)FALSE;
+
+    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MACROPAD));
+
+    MSG msg;
+
+    std::thread launchpad_thread(midi_device::launchpad::Launchpad::RunDevice);
+
+    // Main message loop:
+    while (GetMessage(&msg, nullptr, 0, 0))
+    {
+        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+
+    midi_device::launchpad::Launchpad::TerminateDevice();
+    launchpad_thread.join();
+
+    return (int)msg.wParam;
 }
+
+
 
 void _DebugString(std::wstring s) {
     OutputDebugStringW(s.c_str());
