@@ -23,6 +23,8 @@
 #define IDC_COMBOBOXEX1                 1007
 #define IDC_EDIT1                       1008
 #define IDC_STATIC_1                    1009
+#define IDC_LAUNCHPAD_REFRESH2          1010
+#define IDC_CONFIG_RELOAD               1010
 #define IDC_BUTTON_SET                  1011
 #define IDC_BUTTON_TEST2                1012
 #define IDC_BUTTON_LAUNCHPAD_1          1013

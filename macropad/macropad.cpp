@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "macropad.h"
 #include "Launchpad.h"
+#include "Config.h"
 #include <array>
 #include <Dbt.h>
 
@@ -123,20 +124,8 @@ namespace macropad {
                             ListBox_AddString(macropad::hList_debug_help, str.c_str());
                         }
                     }
-
-
-                    for (const midi_device::launchpad::launchpad_row &button_row : *buttons) {
-                        for (midi_device::launchpad::config::ButtonBase* button : button_row) {
-
-                        }
-                    }
                 }
                 //                
-
-
-                
-
-
                 break;
             }
             case IDC_LAUNCHPAD_RESET:
@@ -145,6 +134,11 @@ namespace macropad {
             case IDC_BUTTON_TEST2:
                 midi_device::launchpad::Launchpad::GetDevice()->setup_pages();
                 break;
+            case IDC_CONFIG_RELOAD: {
+                config::openFileHandle();
+                config::loadFile();
+                break;
+            }
             case IDCANCEL:
                 EndDialog(hdlg, IDCANCEL);
                 break;

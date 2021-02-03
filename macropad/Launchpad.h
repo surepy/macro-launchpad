@@ -1,6 +1,8 @@
 #pragma once
 #include "RtMidi.h"
 #include "MidiDevice.h"
+#include <wchar.h>
+#include <functional>
 
 // this namespace organization does not make any sense.
 namespace midi_device::launchpad {
@@ -36,8 +38,20 @@ namespace midi_device::launchpad {
             std::wstring to_wstring();
         };
 
+        typedef std::function<void()> ComplexMacroFn;
+
         class ButtonComplexMacro : public ButtonBase {
+            ComplexMacroFn func;
         public:
+            ButtonComplexMacro(ComplexMacroFn fun) : func(fun) {}
+            void execute();
+            std::wstring to_wstring();
+        };
+
+        class ButtonStringMacro : public ButtonBase {
+            std::wstring string;
+        public:
+            ButtonStringMacro(std::wstring str) : string(str) {}
             void execute();
             std::wstring to_wstring();
         };
@@ -46,9 +60,10 @@ namespace midi_device::launchpad {
     typedef std::array<launchpad::config::ButtonBase*, 8> launchpad_row;
     typedef std::array<std::array<launchpad::config::ButtonBase*, 8>, 8> launchpad_grid;
 
+    // lol temp
+    extern bool execute_all;
+
     class Launchpad : public MidiDeviceBase {
-        // lol temp
-        inline static bool execute_all = true;
         
         // TODO: multiple device support and think of an actual working execution flow which makes sense 
         // what the FUCK is this shit
@@ -58,10 +73,6 @@ namespace midi_device::launchpad {
         void Loop();
 
         launchpad::config::ButtonBase* get_button(unsigned char num);
-
-        // https://www.music.mcgill.ca/~gary/rtmidi/
-        RtMidiIn* in;
-        RtMidiOut* out;
 
         mode mode = mode::session;
         unsigned int page = 0;

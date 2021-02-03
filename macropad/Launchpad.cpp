@@ -1,9 +1,16 @@
 #include <windows.h>
 #include <array>
+#include <sstream>
+#include <iomanip>
 #include "Launchpad.h"
 #include "macropad.h"
+#include "Config.h"
+
 
 // r
+
+bool midi_device::launchpad::execute_all = true;
+
 
 void midi_device::launchpad::Launchpad::Init() {
     unsigned int nPorts = in->getPortCount();
@@ -264,6 +271,39 @@ void midi_device::launchpad::Launchpad::setup_pages()
 
     page->at(7)[7] = button;
 
+    button = new config::ButtonComplexMacro([]() { _DebugString("lol\n"); });
+
+    button->set_color(launchpad::commands::calculate_velocity(commands::led_brightness::low, commands::led_brightness::high));
+    page->at(7)[6] = button;
+
+
+    https://onlineunicodetools.com/convert-unicode-to-hex use UCS-2-BE
+    wchar_t* ste = new wchar_t[] { 
+            0xd14c, // (korean) te
+            0xc2a4, // s
+            0xd2b8, // t
+            0x0021, // !
+            0x0 // null terminator
+    };
+    std::wstring test = std::wstring(ste);
+    button = new config::ButtonStringMacro(test);
+    button->set_color(launchpad::commands::calculate_velocity(commands::led_brightness::low, commands::led_brightness::low));
+    page->at(7)[5] = button;
+
+    // mute
+    button = new config::ButtonSimpleKeycodeTest(VK_F13);
+    button->set_color(launchpad::commands::vel_yellow_full);
+    page->at(7)[0] = button;
+
+    // deafen
+    button = new config::ButtonSimpleKeycodeTest(VK_F14);
+    button->set_color(launchpad::commands::vel_red_low);
+    page->at(7)[1] = button;
+
+    button = new config::ButtonSimpleKeycodeTest('a');
+    button->set_color(launchpad::commands::calculate_velocity(commands::led_brightness::high, commands::led_brightness::high));
+    page->at(6)[4] = button;
+
     pages.push_back(page);
 }
 
@@ -282,8 +322,8 @@ void midi_device::launchpad::config::ButtonSimpleKeycodeTest::execute()
 
     input.type = INPUT_KEYBOARD;
     input.ki.time = 0;
-    input.ki.wScan = 0;
-    input.ki.dwExtraInfo = 0;
+    input.ki.wScan = NULL;
+    input.ki.dwExtraInfo = NULL;
 
     input.ki.wVk = keycode;
     input.ki.dwFlags = 0;
@@ -302,8 +342,41 @@ void midi_device::launchpad::config::ButtonSimpleKeycodeTest::execute()
 
 void midi_device::launchpad::config::ButtonComplexMacro::execute()
 {
-
+    this->func();
 }
+
+void midi_device::launchpad::config::ButtonStringMacro::execute()
+{
+    for (const wchar_t a : string) {
+        INPUT input;
+
+        input.type = INPUT_KEYBOARD;
+        input.ki.time = 0;
+        input.ki.wScan = a;
+        input.ki.dwExtraInfo = NULL;
+
+        input.ki.wVk = NULL;
+        input.ki.dwFlags = KEYEVENTF_UNICODE;
+
+        // send
+        SendInput(1, &input, sizeof(INPUT));
+
+        // wait
+        Sleep(1);
+
+        // release
+        input.ki.dwFlags = KEYEVENTF_KEYUP;
+        SendInput(1, &input, sizeof(INPUT));
+
+        Sleep(1);
+    }
+}
+
+std::wstring midi_device::launchpad::config::ButtonStringMacro::to_wstring()
+{
+    return L"midi_device::launchpad::config::ButtonStringMacro : color=" + std::to_wstring(this->get_color()) + L" str=\"" + this->string + L"\"";
+}
+
 
 std::wstring midi_device::launchpad::config::ButtonBase::to_wstring()
 {
@@ -312,10 +385,13 @@ std::wstring midi_device::launchpad::config::ButtonBase::to_wstring()
 
 std::wstring midi_device::launchpad::config::ButtonComplexMacro::to_wstring()
 {
-    return L"midi_device::launchpad::config::ButtonComplexMacro : color=" + this->get_color();
+    std::wstringstream buffer;
+    buffer << std::hex << &this->func;
+
+    return L"midi_device::launchpad::config::ButtonComplexMacro : color=" + std::to_wstring(this->get_color()) + L" func_ptr=" + buffer.str();
 }
 
 std::wstring midi_device::launchpad::config::ButtonSimpleKeycodeTest::to_wstring()
 {
-    return L"midi_device::launchpad::config::ButtonComplexMacro : color=" + std::to_wstring(this->get_color()) + L" keycode=" + std::to_wstring(this->keycode);
+    return L"midi_device::launchpad::config::ButtonSimpleKeycodeTest : color=" + std::to_wstring(this->get_color()) + L" keycode=" + std::to_wstring(this->keycode);
 }
