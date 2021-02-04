@@ -7,6 +7,8 @@
 namespace config {
     HANDLE file_handle;
     std::filesystem::path file_path = std::filesystem::current_path() / L"config.json";
+    // we can honestly do per-device config setting; too confusing. we already have enough buttons.
+    // not everyone is taran.
     nlohmann::json config_file;
 };
 
@@ -40,7 +42,7 @@ int config::loadFile() {
         // used to find the buffer size you need for the wide string.
         int buffer_2_size = MultiByteToWideChar(CP_UTF8, 0, buffer, dwBtytesRead, nullptr, 0);
         // + 1 for null termination.
-        wchar_t *buffer_2 = new wchar_t[buffer_2_size + (int)1];
+        wchar_t *buffer_2 = new wchar_t[static_cast<size_t>(buffer_2_size) + 1];
         // convert.
         MultiByteToWideChar(CP_UTF8, 0, buffer, dwBtytesRead, buffer_2, buffer_2_size);
         // add null termination

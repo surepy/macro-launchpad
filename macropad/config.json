@@ -1,21 +1,60 @@
 {
+    "version": -1,
+    "devices": {
+        "Launchpad_S": {
+            "session": {
+                "1": [
+                    {
+                        "type": "key_test",
+                        "position": [ 6, 6 ],
+                        "position_2": null,
+                        "color": ["low", "low"],
+                        "data": 44
+                    },
+
+                    {
+                        "type": "key_string",
+                        "position": [ 6, 7 ],
+                        "position_2": null,
+                        "color": [ "low", "low" ],
+                        "data": "a test string"
+                    }
+                ]
+            },
+            "user_1": {
+
+            },
+            "user_2": {
+
+            },
+            "mixer": {
+
+            },
+            "fallback": {
+
+            }
+        }
+    },
+
+
+
     "glossary": {
         "title": "example glossary",
-		"GlossDiv": {
+        "GlossDiv": {
             "title": "S",
-			"GlossList": {
+            "GlossList": {
                 "GlossEntry": {
                     "ID": "SGML",
-					"SortAs": "SGML",
-					"GlossTerm": "Standard Generalized Markup Language",
-					"Acronym": "SGML",
-					"Abbrev": "ISO 8879:1986",
-					"GlossDef": {
+                    "SortAs": "SGML",
+                    "GlossTerm": "Standard Generalized Markup Language",
+                    "Acronym": "SGML",
+                    "Abbrev": "ISO 8879:1986",
+                    "GlossDef": {
                         "para": "A meta-markup language, used to create markup languages such as DocBook.",
-						"GlossSeeAlso": ["GML", "XML"]
+                        "GlossSeeAlso": [ "GML", "XML" ]
                     },
-					"GlossSee": "markup",
-					"UnicodeString": "으아아!"
+                    "GlossSee": "markup",
+                    "UnicodeString": "으아아!"
                 }
             }
         }
