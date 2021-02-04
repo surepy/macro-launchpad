@@ -307,6 +307,38 @@ void midi_device::launchpad::Launchpad::setup_pages()
     pages.push_back(page);
 }
 
+void midi_device::launchpad::Launchpad::load_config_buttons_test() {
+    try {
+        if (::config::config_file.at("devices").contains("Launchpad_S")) {
+            return;
+        }
+
+        // why
+        if (!::config::config_file.at("devices").at("Launchpad_S").is_object()) {
+            return;
+        }
+
+        nlohmann::json& config = ::config::config_file.at("devices").at("Launchpad_S");
+
+        for (auto& [key, item] : config.at("session").items()) {
+            if (std::stoi(key))
+        }
+
+
+    }
+    catch (std::invalid_argument& e) {
+
+    }
+    catch (nlohmann::json::type_error& e) {
+        _DebugString("type error!\n");
+    }
+    catch (nlohmann::json::out_of_range &e) {
+        _DebugString("range error!\n");
+    }
+
+}
+
+
 void midi_device::launchpad::Launchpad::TerminateDevice()
 {
     execute_all = false;

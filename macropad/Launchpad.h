@@ -97,6 +97,8 @@ namespace midi_device::launchpad {
         void medium_brightness_test();
         void full_brightness_test();
 
+        void load_config_buttons_test();
+
         inline launchpad_grid* getCurrentButtons() {
             if (page >= pages.size()) {
                 return nullptr;
