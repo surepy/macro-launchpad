@@ -1,18 +1,14 @@
 #include "json.hpp"
 #include "framework.h"
 #include <filesystem>
+#include <locale>
+#include <string>
 
 namespace config {
     HANDLE file_handle;
     std::filesystem::path file_path = std::filesystem::current_path() / L"config.json";
     nlohmann::json config_file;
 };
-
-
-
-void test() {
-    nlohmann::json j;
-}
 
 int config::openFileHandle() {
     file_handle = CreateFileW(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, NULL, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -51,9 +47,23 @@ int config::loadFile() {
         buffer_2[buffer_2_size] = 0x0;
         // apprend.
         str += std::wstring(buffer_2);
+
+        delete[] buffer_2;
     }
 
     config_file = nlohmann::json::parse(str);
+
+    std::string help_my_soul = static_cast<std::string>(config_file.at("glossary").at("GlossDiv").at("GlossList").at("GlossEntry").at("UnicodeString"));
+
+    // used to find the buffer size you need for the wide string.
+    int buffer_3_size = MultiByteToWideChar(CP_UTF8, 0, help_my_soul.c_str(), -1, nullptr, 0);
+    wchar_t* buffer_3 = new wchar_t[buffer_3_size];
+    // convert.
+    MultiByteToWideChar(CP_UTF8, 0, help_my_soul.c_str(), -1, buffer_3, buffer_3_size);
+    std::wstring a = std::wstring(buffer_3);
+    delete[] buffer_3;
+
+    _DebugString(a);
 
     return 0;
 };

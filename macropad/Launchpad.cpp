@@ -63,6 +63,7 @@ void midi_device::launchpad::Launchpad::Init() {
         }
     }
 
+    this->setup_pages();
     this->fullLedUpdate();
 }
 
