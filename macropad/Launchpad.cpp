@@ -201,6 +201,10 @@ midi_device::launchpad::config::ButtonBase* midi_device::launchpad::Launchpad::g
         return nullptr;
     }
 
+    if (pages.at(page) == nullptr) {
+        return nullptr;
+    }
+
     int x, y;
     commands::calculate_xy_fom_keycode(key, x, y);
 
@@ -249,6 +253,10 @@ void midi_device::launchpad::Launchpad::fullLedUpdate()
         for (size_t row = 0; row < pages.at(page)->size(); ++row) {
             // column
             for (size_t col = 0; col < pages.at(page)->at(row).size(); ++col) {
+                if (pages.at(page) == nullptr) {
+                    continue;
+                }
+
                 config::ButtonBase* button = pages.at(page)->at(row).at(col);
 
                 if (button == nullptr) {
@@ -310,9 +318,9 @@ void midi_device::launchpad::Launchpad::setup_pages()
 
 void midi_device::launchpad::Launchpad::load_config_buttons_test() {
     try {
-        if (::config::config_file.at("devices").contains("Launchpad_S")) {
+        /*if (::config::config_file.at("devices").contains("Launchpad_S")) {
             return;
-        }
+        }*/
 
         // why
         if (!::config::config_file.at("devices").at("Launchpad_S").is_object()) {
@@ -320,15 +328,56 @@ void midi_device::launchpad::Launchpad::load_config_buttons_test() {
         }
 
         nlohmann::json& config = ::config::config_file.at("devices").at("Launchpad_S");
+        pages.clear();
+        // FIXME: hard limit of 8 pages by buttons but this should be handled better.
+        pages.resize(8);
 
-        for (auto& [key, item] : config.at("session").items()) {
-            if (std::stoi(key))
+        for (auto& [page, buttons] : config.at("session").items()) {
+            int index = std::stoi(page);
+            launchpad_grid* page_buttons = new launchpad_grid{ nullptr };
+
+            if (!buttons.is_array()) {
+                _DebugString("lol you're fucked\n");
+            }
+
+            for (auto& button : buttons) {
+                std::string type = button.at("type");
+                int position_x = button.at("position").at(0);
+                int position_y = button.at("position").at(1);
+                unsigned char color = commands::calculate_velocity(1, 2);
+
+                config::ButtonBase* new_button;
+
+                if (type == "key_test") {
+                    if (!button.at("data").is_number()) {
+                        continue;
+                    }
+
+                    new_button = new config::ButtonSimpleKeycodeTest(button.at("data"));
+
+                }
+                else if (type == "key_string") {
+                    if (!button.at("data").is_string()) {
+                        continue;
+                    }
+
+                    // FIXME: USE WSTRING!
+                    new_button = new config::ButtonStringMacro(L"temp");
+                }
+                else {
+                    new_button = new config::ButtonSimpleKeycodeTest('b');
+                }
+
+                new_button->set_color(color);
+
+                page_buttons->at(position_x).at(position_y) = new_button;
+            }
+            
+            pages.at(index) = page_buttons;
         }
-
-
     }
     catch (std::invalid_argument& e) {
-
+        _DebugString("invalid args!\n");
     }
     catch (nlohmann::json::type_error& e) {
         _DebugString("type error!\n");

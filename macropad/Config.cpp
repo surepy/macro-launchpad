@@ -5,7 +5,7 @@
 #include <string>
 
 namespace config {
-    HANDLE file_handle;
+    HANDLE file_handle = INVALID_HANDLE_VALUE;
     std::filesystem::path file_path = std::filesystem::current_path() / L"config.json";
     // we can honestly do per-device config setting; too confusing. we already have enough buttons.
     // not everyone is taran.
@@ -14,7 +14,7 @@ namespace config {
 
 int config::openFileHandle() {
     file_handle = CreateFileW(file_path.c_str(), GENERIC_READ | GENERIC_WRITE, NULL, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (file_handle == NULL)
+    if (file_handle == INVALID_HANDLE_VALUE)
         return GetLastError();
     return 0;
 };
@@ -34,7 +34,7 @@ int config::loadFile() {
     OVERLAPPED ol = { 0 };
 
     for (; bytes_left >= 0; bytes_left -= buffer_size) {
-        if (FALSE == ReadFile(file_handle, buffer, buffer_size - 1, &dwBtytesRead, &ol))
+        if (FALSE == ReadFile(file_handle, buffer, buffer_size, &dwBtytesRead, NULL))
         {
             return GetLastError();
         }
@@ -47,7 +47,7 @@ int config::loadFile() {
         MultiByteToWideChar(CP_UTF8, 0, buffer, dwBtytesRead, buffer_2, buffer_2_size);
         // add null termination
         buffer_2[buffer_2_size] = 0x0;
-        // apprend.
+        // append.
         str += std::wstring(buffer_2);
 
         delete[] buffer_2;
@@ -65,7 +65,7 @@ int config::loadFile() {
     std::wstring a = std::wstring(buffer_3);
     delete[] buffer_3;
 
-    _DebugString(a);
+    _DebugString(a + L"\n");
 
     return 0;
 };

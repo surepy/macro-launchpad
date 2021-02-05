@@ -135,8 +135,19 @@ namespace macropad {
                 midi_device::launchpad::Launchpad::GetDevice()->setup_pages();
                 break;
             case IDC_CONFIG_RELOAD: {
+                if (config::file_handle != INVALID_HANDLE_VALUE) {
+                    CloseHandle(config::file_handle);
+                }
+
                 config::openFileHandle();
                 config::loadFile();
+                CloseHandle(config::file_handle);
+
+                break;
+            }
+            case IDC_CONFIG_RELOAD2: {
+                midi_device::launchpad::Launchpad::GetDevice()->load_config_buttons_test();
+                midi_device::launchpad::Launchpad::GetDevice()->fullLedUpdate();
                 break;
             }
             case IDCANCEL:
