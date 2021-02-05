@@ -55,17 +55,5 @@ int config::loadFile() {
 
     config_file = nlohmann::json::parse(str);
 
-    std::string help_my_soul = static_cast<std::string>(config_file.at("glossary").at("GlossDiv").at("GlossList").at("GlossEntry").at("UnicodeString"));
-
-    // used to find the buffer size you need for the wide string.
-    int buffer_3_size = MultiByteToWideChar(CP_UTF8, 0, help_my_soul.c_str(), -1, nullptr, 0);
-    wchar_t* buffer_3 = new wchar_t[buffer_3_size];
-    // convert.
-    MultiByteToWideChar(CP_UTF8, 0, help_my_soul.c_str(), -1, buffer_3, buffer_3_size);
-    std::wstring a = std::wstring(buffer_3);
-    delete[] buffer_3;
-
-    _DebugString(a + L"\n");
-
     return 0;
 };

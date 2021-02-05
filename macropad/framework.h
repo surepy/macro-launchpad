@@ -22,4 +22,17 @@
 #include "Launchpad.h"
 #include "Config.h"
 #include "macropad.h"
- 
+
+
+inline std::wstring string_to_wstring(std::string convert) {
+    // used to find the buffer size you need for the wide string.
+    int buffer_size = MultiByteToWideChar(CP_UTF8, 0, convert.c_str(), -1, nullptr, 0);
+    // new obj
+    wchar_t* buffer = new wchar_t[buffer_size];
+    // convert.
+    MultiByteToWideChar(CP_UTF8, 0, convert.c_str(), -1, buffer, buffer_size);
+    // get the result
+    std::wstring result = std::wstring(buffer);
+    delete[] buffer;
+    return result;
+}

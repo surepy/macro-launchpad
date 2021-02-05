@@ -2,6 +2,7 @@
 #include <array>
 #include <sstream>
 #include <iomanip>
+#include "framework.h"
 #include "Launchpad.h"
 #include "macropad.h"
 #include "Config.h"
@@ -361,8 +362,7 @@ void midi_device::launchpad::Launchpad::load_config_buttons_test() {
                         continue;
                     }
 
-                    // FIXME: USE WSTRING!
-                    new_button = new config::ButtonStringMacro(L"temp");
+                    new_button = new config::ButtonStringMacro(string_to_wstring(button.at("data")));
                 }
                 else {
                     new_button = new config::ButtonSimpleKeycodeTest('b');
