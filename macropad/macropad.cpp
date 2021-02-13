@@ -13,7 +13,6 @@ namespace macropad {
     WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
     WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
-
     HWND hMainWindow;
     HWND hMainForm;
     HWND hList_debug_help; // lol
@@ -61,7 +60,7 @@ namespace macropad {
         HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
             CW_USEDEFAULT, CW_USEDEFAULT, 1010, 650, nullptr, nullptr, hInstance, nullptr);
 
-        HWND hWindForm = CreateDialog(hInst, MAKEINTRESOURCE(IDD_FORMVIEW), hWnd, FormDlgproc);
+        HWND hWindForm = CreateDialog(hInst, MAKEINTRESOURCE(IDD_FORMVIEW), hWnd, FormDlgProc);
 
         if (!(hWnd || hWindForm))
         {
@@ -78,7 +77,7 @@ namespace macropad {
     }
 
 
-    INT_PTR CALLBACK FormDlgproc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    LRESULT CALLBACK FormDlgProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         UNREFERENCED_PARAMETER(lParam);
 
@@ -100,32 +99,7 @@ namespace macropad {
                 break;
             case IDC_LAUNCHPAD_REFRESH: {
                 midi_device::launchpad::Launchpad::GetDevice()->fullLedUpdate();
-
-                std::array<std::array<midi_device::launchpad::config::ButtonBase*, 8>, 8> *buttons = midi_device::launchpad::Launchpad::GetDevice()->getCurrentButtons();
-
-                //ListBox_DeleteString(macropad::hList_debug_help);
-                for (int i = ListBox_GetCount(macropad::hList_debug_help); i >= 0; i--) {
-                    ListBox_DeleteString(macropad::hList_debug_help, i);
-                }
-
-                if (buttons != nullptr) {
-                    for (size_t x = 0; x < buttons->size(); x++) {
-                        for (size_t y = 0; y < buttons->at(x).size(); y++) {
-                            midi_device::launchpad::config::ButtonBase* button = buttons->at(x).at(y);
-                            std::wstring str = L"x= " + std::to_wstring(x) + L" y= " + std::to_wstring(y) + L" ";
-
-                            if (button == nullptr) {
-                                str += L"null button";
-                            }
-                            else {
-                                str += button->to_wstring();
-                            }
-
-                            ListBox_AddString(macropad::hList_debug_help, str.c_str());
-                        }
-                    }
-                }
-                //                
+                RefreshButtonList();
                 break;
             }
             case IDC_LAUNCHPAD_RESET:
@@ -212,7 +186,7 @@ namespace macropad {
     }
 
     // Message handler for about box.
-    INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+    LRESULT CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     {
         UNREFERENCED_PARAMETER(lParam);
         switch (message)
@@ -231,6 +205,40 @@ namespace macropad {
     }
 }
 
+
+void macropad::RefreshButtonList() {
+    midi_device::launchpad::launchpad_grid* buttons = midi_device::launchpad::Launchpad::GetDevice()->getCurrentButtons();
+
+    ClearButtonList();
+
+    if (buttons != nullptr) {
+        for (size_t x = 0; x < buttons->size(); x++) {
+            for (size_t y = 0; y < buttons->at(x).size(); y++) {
+                midi_device::launchpad::config::ButtonBase* button = buttons->at(x).at(y);
+                std::wstring str = std::to_wstring(midi_device::launchpad::commands::calculate_grid(x, y)) + L" | x= " + std::to_wstring(x) + L" y= " + std::to_wstring(y) + L" | ";
+
+                if (button == nullptr) {
+                    str += L"null button";
+                }
+                else {
+                    str += button->to_wstring();
+                }
+
+                ListBox_AddString(macropad::hList_debug_help, str.c_str());
+            }
+        }
+    }
+    else {
+        ListBox_AddString(macropad::hList_debug_help, L"this page is empty!");
+    }
+}
+
+
+void macropad::ClearButtonList() {
+    for (int i = ListBox_GetCount(macropad::hList_debug_help); i >= 0; i--) {
+        ListBox_DeleteString(macropad::hList_debug_help, i);
+    }
+}
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,

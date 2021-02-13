@@ -14,10 +14,6 @@ namespace midi_device::launchpad {
     };
 
     namespace config {
-        class ConfigFile {
-
-        };
-
         class ButtonBase {
             unsigned char color;
         public:
@@ -116,6 +112,24 @@ namespace midi_device::launchpad {
         inline static Launchpad* GetDevice() { return main_device; }
     };
 
+    enum class message_type {
+        invalid = 0x0,
+        grid_depressed = 0x90,
+        grid_pressed = 0x90 + 0x7F,
+        grid_page_change_depressed = 0x90 + 0x7F + 0x1,
+        grid_page_change_pressed = 0x90 + 0x7F + 0x2,
+        automap_live_depressed = 0xB0,
+        automap_live_pressed = 0xB0 + 0x7F
+    };
+
+    class input {
+    public:
+        std::vector<unsigned char> message;
+
+        input(std::vector<unsigned char> msg) : message(msg) {};
+        message_type message_type();
+        unsigned char keycode();
+    };
 
     // look at the Launchpad Programmer’s Reference.
     namespace commands {

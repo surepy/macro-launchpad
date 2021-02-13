@@ -7,6 +7,4 @@ namespace midi_device {
 		RtMidiIn* in;
 		RtMidiOut* out;
 	};
-
-
 }

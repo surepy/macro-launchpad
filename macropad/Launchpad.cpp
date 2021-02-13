@@ -111,6 +111,31 @@ void midi_device::launchpad::Launchpad::RunDevice()
     main_device->Loop();
 }
 
+midi_device::launchpad::message_type midi_device::launchpad::input::message_type() {
+    midi_device::launchpad::message_type type = static_cast<midi_device::launchpad::message_type>(message.at(0) + message.at(2));
+    
+    // this shouldn't happen...
+    if (type > message_type::automap_live_pressed || type < message_type::grid_depressed) {
+        return message_type::invalid;
+    }
+    
+    if (message.at(1) % 0x10 == 0x08) {
+        if (type == message_type::grid_depressed) {
+            return message_type::grid_page_change_depressed;
+        }
+        else if (type == message_type::grid_pressed) {
+            return message_type::grid_page_change_pressed;
+        }
+    }
+
+    return static_cast<midi_device::launchpad::message_type>(message.at(0) + message.at(2));
+}
+
+unsigned char midi_device::launchpad::input::keycode() {
+    return message.at(1);
+}
+
+
 /// <summary>
 /// launchpad input loop...
 /// </summary>
@@ -134,60 +159,50 @@ void midi_device::launchpad::Launchpad::Loop() {
             _DebugString("Byte " + std::to_string(i) + " = " + std::to_string((int)message[i]) + ", ");
         if (nBytes > 0)
             _DebugString("stamp = " + std::to_string(stamp) + "\n");
-        
-        if (nBytes == 3) {
-            // grid button pressed or released.
-            if (message[0] == 0x90) {
-                // we want to only handle inside grid buttons, not the "page" side buttons.
-                if (message[1] % 0x10 <= 0x07) {
-                    button = get_button(message[1]);
 
-                    // pressed
-                    if (message[2] == 0x7F) {
-                        this->sendMessage(launchpad::commands::led_on(message[1], launchpad::commands::vel_red_full));
-                    }
-                    // released.
-                    else if (message[2] == 0x00) {
-                        if (button == nullptr) {
-                            this->sendMessage(launchpad::commands::led_off(message[1], launchpad::commands::vel_off_off));
-                        }
-                        else {
-                            button->execute();
-
-                            this->sendMessage(launchpad::commands::led_on(message[1], button->get_color()));
-                        }
-                    }
-                }
-                else {
-                    // pressed
-                    if (message[2] == 0x7F) {
-                        // change page.
-                        page = message[1] / 0x10;
-
-                        // update all buttons
-                        this->fullLedUpdate();
-                    }
-                    // released.
-                    else if (message[2] == 0x00) {
-                    }
-                }
-
-            }
-            // Automap/Live buttons pressed or released.
-            else if (message[0] == 0xB0) {
-                // pressed
-                if (message[2] == 0x7F) {
-                    if (message[1] >= 108)
-                        mode = static_cast<launchpad::mode>(message[1]);
-
-                    this->fullLedUpdate();
-                }
-                // released.
-                else if (message[2] == 0x00) {
-
-                }
-            }
+        if (nBytes != 3) {
+            continue;
         }
+
+        midi_device::launchpad::input input = midi_device::launchpad::input(message);
+
+        switch (input.message_type()) {
+        case message_type::grid_pressed: {
+            this->sendMessage(launchpad::commands::led_on(input.keycode(), launchpad::commands::vel_red_full));
+            break;
+        }
+        case message_type::grid_depressed: {
+            button = get_button(input.keycode());
+
+            if (button == nullptr) {
+                this->sendMessage(launchpad::commands::led_off(input.keycode(), launchpad::commands::vel_off_off));
+            }
+            else {
+                button->execute();
+                this->sendMessage(launchpad::commands::led_on(input.keycode(), button->get_color()));
+            }
+            break;
+        }
+        case message_type::grid_page_change_pressed: {
+            // change page.
+            page = message[1] / 0x10;
+
+            // update all buttons
+            this->fullLedUpdate();
+            break;
+        }
+        case message_type::automap_live_pressed: {
+            if (message[1] >= 108) {
+                mode = static_cast<launchpad::mode>(message[1]);
+            }
+            this->fullLedUpdate();
+            break;
+        }
+        case message_type::automap_live_depressed: {
+            break;
+        }
+        }
+
         button = nullptr;
         message.clear();
     }

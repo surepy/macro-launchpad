@@ -54,6 +54,5 @@ int config::loadFile() {
     }
 
     config_file = nlohmann::json::parse(str);
-
     return 0;
 };
