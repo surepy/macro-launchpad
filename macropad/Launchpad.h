@@ -84,7 +84,7 @@ namespace midi_device::launchpad {
         void Init();
         void sendMessage(unsigned char* message);
         void fullLedUpdate();
-        void setup_pages();
+        void setup_pages_test();
 
         // launchpad defined.
         void reset();
@@ -109,7 +109,7 @@ namespace midi_device::launchpad {
 
         // testing purposes thing proof of consept 1 device thing
         // please fix later
-        inline static Launchpad* GetDevice() { return main_device; }
+        inline static Launchpad* GetDevice() { return reinterpret_cast<Launchpad*>(midi_device::devices.at(0)); }
     };
 
     enum class message_type {

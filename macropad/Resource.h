@@ -29,6 +29,11 @@
 #define IDC_BUTTON_LAUNCHPAD_1          1013
 #define IDC_CONFIG_RELOAD2              1013
 #define IDC_LIST_DEBUG_HELP             1015
+#define IDC_COMBOBOXEX3                 1018
+#define IDC_MIDI_DEVICE_IN              1020
+#define IDC_MIDI_DEVICE_OUT             1021
+#define IDC_MIDI_DEVICE_START           1022
+#define IDC_MIDI_DEVICE_REFRESH         1023
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -38,7 +43,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1016
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

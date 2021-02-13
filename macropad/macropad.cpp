@@ -17,6 +17,13 @@ namespace macropad {
     HWND hMainForm;
     HWND hList_debug_help; // lol
 
+    HWND hCombo_Midi_Ins;
+    HWND hCombo_Midi_Outs;
+
+    // used exclusively for probing
+    RtMidiIn* midi_in = new RtMidiIn();
+    RtMidiOut* midi_out = new RtMidiOut();
+
     //
     //  FUNCTION: MyRegisterClass()
     //
@@ -73,6 +80,9 @@ namespace macropad {
 
         macropad::hList_debug_help = GetDlgItem(hWindForm, IDC_LIST_DEBUG_HELP);
 
+        macropad::hCombo_Midi_Ins = GetDlgItem(hWindForm, IDC_MIDI_DEVICE_IN);
+        macropad::hCombo_Midi_Outs = GetDlgItem(hWindForm, IDC_MIDI_DEVICE_OUT);
+
         return TRUE;
     }
 
@@ -106,7 +116,7 @@ namespace macropad {
                 midi_device::launchpad::Launchpad::GetDevice()->reset();
                 break;
             case IDC_BUTTON_TEST2:
-                midi_device::launchpad::Launchpad::GetDevice()->setup_pages();
+                midi_device::launchpad::Launchpad::GetDevice()->setup_pages_test();
                 break;
             case IDC_CONFIG_RELOAD: {
                 if (config::file_handle != INVALID_HANDLE_VALUE) {
@@ -122,6 +132,14 @@ namespace macropad {
             case IDC_CONFIG_RELOAD2: {
                 midi_device::launchpad::Launchpad::GetDevice()->load_config_buttons_test();
                 midi_device::launchpad::Launchpad::GetDevice()->fullLedUpdate();
+                break;
+            }
+            case IDC_MIDI_DEVICE_START: {
+                new midi_device::launchpad::Launchpad
+                break;
+            }
+            case IDC_MIDI_DEVICE_REFRESH: {
+                macropad::RefreshDevicesList();
                 break;
             }
             case IDCANCEL:
@@ -238,6 +256,49 @@ void macropad::ClearButtonList() {
     for (int i = ListBox_GetCount(macropad::hList_debug_help); i >= 0; i--) {
         ListBox_DeleteString(macropad::hList_debug_help, i);
     }
+}
+
+void macropad::RefreshDevicesList()
+{
+    for (int i = ComboBox_GetCount(macropad::hCombo_Midi_Ins); i >= 0; i--) {
+        ComboBox_DeleteString(macropad::hCombo_Midi_Ins, i);
+    }
+
+    for (int i = ComboBox_GetCount(macropad::hCombo_Midi_Outs); i >= 0; i--) {
+        ComboBox_DeleteString(macropad::hCombo_Midi_Outs, i);
+    }
+
+
+    size_t nPorts = midi_in->getPortCount();
+    std::string portName;
+    for (size_t i = 0; i < nPorts; i++) {
+        try {
+            portName = midi_in->getPortName(i);
+        }
+        catch (RtMidiError& error) {
+            error.printMessage();
+        }
+
+        std::wstring conv = string_to_wstring(portName);
+
+        ComboBox_AddString(macropad::hCombo_Midi_Ins, conv.c_str());
+    }
+
+    nPorts = midi_out->getPortCount();
+    for (size_t i = 0; i < nPorts; i++) {
+        try {
+            portName = midi_out->getPortName(i);
+        }
+        catch (RtMidiError& error) {
+            error.printMessage();
+        }
+
+        std::wstring conv = string_to_wstring(portName);
+
+        ComboBox_AddString(macropad::hCombo_Midi_Outs, conv.c_str());
+    }
+
+    
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

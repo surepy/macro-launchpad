@@ -25,8 +25,16 @@ namespace macropad {
     extern HWND hButton_whatever_this_is;
     extern HWND hList_debug_help;
 
+    extern HWND hCombo_Midi_Ins;
+    extern HWND hCombo_Midi_Outs;
+
+    extern RtMidiIn* midi_in;
+    extern RtMidiOut* midi_out;
+
     void RefreshButtonList();
     void ClearButtonList();
+
+    void RefreshDevicesList();
 }
 
 void _DebugString(std::wstring s);

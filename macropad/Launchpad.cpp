@@ -64,8 +64,10 @@ void midi_device::launchpad::Launchpad::Init() {
         }
     }
 
-    this->setup_pages();
+    this->setup_pages_test();
     this->fullLedUpdate();
+
+    midi_device::devices.push_back(this);
 }
 
 void midi_device::launchpad::Launchpad::reset()
@@ -286,7 +288,7 @@ void midi_device::launchpad::Launchpad::fullLedUpdate()
     }
 }
 
-void midi_device::launchpad::Launchpad::setup_pages()
+void midi_device::launchpad::Launchpad::setup_pages_test()
 {
     launchpad_grid* page = new launchpad_grid{ nullptr };
 
